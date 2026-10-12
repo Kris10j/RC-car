@@ -1,0 +1,2 @@
+../Src/interrupt.c:4:6:NVIC_Priority	1
+../Src/interrupt.c:9:6:NVIC_Enable	1

@@ -27,6 +27,9 @@ void car_start_position(USART_values* start);
 void USART1_reset (void);
 void simple_delay(void);
 void enable_fpu(void);
+void EXTI_initialize(void);
+void ultrasonic_trigger(uint8_t trig_pin);
+
 
 /****************RCC MACROS ****************/
 
@@ -38,12 +41,15 @@ void enable_fpu(void);
 #define RCC_APB2ENR_TIM1						(1u << 0)								// TIM1 clock
 #define RCC_APB2ENR_TIM8						(1u << 1)								// TIM8 clock
 #define RCC_APB2ENR_ADC1						(1u << 8)								// ADC1 clock
+#define RCC_APB2ENR_SYSCFGEN   				    (1u << 14)								// SYSCFGEN clock
 
 /****************GPIO MACROS ****************/
 
 /*MODER - Port mode register*/
 #define AF										2u										// 0b10 (Alternate function mode)
 #define ANALOG									3u										// 0b11 (Analog mode)
+#define GPIO_PIN_4                              (1u << 4)
+
 
 /*MODER - set and clear PA0, PA8, PA9, PA10, PA11, PB7, */
 #define CLEAR_MODER_PA0							~(3u << (0 * 2))
@@ -54,7 +60,18 @@ void enable_fpu(void);
 #define CLEAR_MODER_PA10						~(3u << (10 * 2))
 #define CLEAR_MODER_PA11						~(3u << (11 * 2))
 #define CLEAR_MODER_PB7							~(3u << (7 * 2))
-#define CLEAR_MODER_PC6							~(3u << (6*2))
+#define CLEAR_MODER_PB5     				    ~(3u << (5 * 2))
+#define CLEAR_MODER_PB6                         ~(3u << (6 * 2))
+#define CLEAR_MODER_PB8     				    ~(3u << (8 * 2))
+#define CLEAR_MODER_PB9     				    ~(3u << (9 * 2))
+#define CLEAR_MODER_PB10   					    ~(3u << (10 * 2))
+#define CLEAR_MODER_PB12    				    ~(3u << (12 * 2))
+#define CLEAR_MODER_PC4    					    ~(3u << (4 * 2))
+#define CLEAR_MODER_PC5    					    ~(3u << (5 * 2))
+#define CLEAR_MODER_PC6    					    ~(3u << (6 * 2))
+#define CLEAR_MODER_PC8     				    ~(3u << (8 * 2))
+#define CLEAR_MODER_PC9     				    ~(3u << (9 * 2))
+#define CLEAR_MODER_PC10   					    ~(3u << (10 * 2))
 #define SET_PA0_ANALOG							(ANALOG << (0 * 2))
 #define SET_PA1_OUTPUT							(1 << (1 * 2))
 #define SET_PA4_OUTPUT							(1 << (4 * 2))
@@ -63,6 +80,12 @@ void enable_fpu(void);
 #define SET_PA10_AF								(AF << (10 * 2))
 #define SET_PA11_AF								(AF << (11 * 2))
 #define SET_PB7_AF								(AF << (7 * 2))
+#define SET_PB5_OUTPUT       					(1u << (5 * 2))
+#define SET_PB6_OUTPUT      				    (1u << (6 * 2))
+#define SET_PB8_OUTPUT      				    (1u << (8 * 2))
+#define SET_PB9_OUTPUT      				    (1u << (9 * 2))
+#define SET_PB10_OUTPUT      					(1u << (10 * 2))
+#define SET_PB12_OUTPUT     				    (1u << (12 * 2))
 #define SET_PC6_AF								(AF << (6*2))
 
 /*PUPDR - No pull-up, pull-down configuration*/
@@ -75,10 +98,27 @@ void enable_fpu(void);
 #define CLEAR_PA10_NO_PULL						~(3u << (10 * 2))
 #define CLEAR_PA11_NO_PULL						~(3u << (11 * 2))
 #define CLEAR_PB7_NO_PULL						~(3u << (7 * 2))
-#define CLEAR_PC6_NO_PULL						~(3u << (6*2))
+#define CLEAR_PB5_NO_PULL      					~(3u << (5 * 2))
+#define CLEAR_PB6_NO_PULL     				    ~(3u << (6 * 2))
+#define CLEAR_PB8_NO_PULL   				    ~(3u << (8 * 2))
+#define CLEAR_PB9_NO_PULL     				    ~(3u << (9 * 2))
+#define CLEAR_PB10_NO_PULL   				    ~(3u << (10 * 2))
+#define CLEAR_PB12_NO_PULL     					~(3u << (12 * 2))
+#define CLEAR_PC4_NO_PULL   				    ~(3u << (4 * 2))
+#define CLEAR_PC5_NO_PULL   				    ~(3u << (5 * 2))
+#define CLEAR_PC6_NO_PULL  					    ~(3u << (6 * 2))
+#define CLEAR_PC8_NO_PULL   				    ~(3u << (8 * 2))
+#define CLEAR_PC9_NO_PULL   				    ~(3u << (9 * 2))
+#define CLEAR_PC10_NO_PULL  				    ~(3u << (10 * 2))
 #define SET_PA1_PULL_DOWN						(1u << (1 * 2))
 #define SET_PA4_PULL_DOWN						(1u << (4 * 2))
 #define SET_PB7_PULL							(1u << (7 * 2))
+#define SET_PC4_PULL_DOWN    					(2u << (4 * 2))
+#define SET_PC5_PULL_DOWN    					(2u << (5 * 2))
+#define SET_PC6_PULL_DOWN    					(2u << (6 * 2))
+#define SET_PC8_PULL_DOWN    					(2u << (8 * 2))
+#define SET_PC9_PULL_DOWN    					(2u << (9 * 2))
+#define SET_PC10_PULL_DOWN   					(2u << (10 * 2))
 
 /*OTYPER - clear PA8, PA9, PA10, PA11 [00 - to configure the output type of the I/O port]*/
 #define CLEAR_PA1_OUT_PUSH_PULL					~(1u << 1)
@@ -87,6 +127,12 @@ void enable_fpu(void);
 #define CLEAR_PA9_OUT_PUSH_PULL					~(1u << 9)
 #define CLEAR_PA10_OUT_PUSH_PULL				~(1u << 10)
 #define CLEAR_PA11_OUT_PUSH_PULL				~(1u << 11)
+#define CLEAR_PB5_OUT_PUSH_PULL   			    ~(1u << 5)
+#define CLEAR_PB6_OUT_PUSH_PULL   			    ~(1u << 6)
+#define CLEAR_PB8_OUT_PUSH_PULL     		    ~(1u << 8)
+#define CLEAR_PB9_OUT_PUSH_PULL     		    ~(1u << 9)
+#define CLEAR_PB10_OUT_PUSH_PULL   			    ~(1u << 10)
+#define CLEAR_PB12_OUT_PUSH_PULL   			    ~(1u << 12)
 #define CLEAR_PC6_OUT_PUSH_PULL					~(1u << 6)
 
 /*OSPEEDR - output speed register*/
@@ -99,6 +145,12 @@ void enable_fpu(void);
 #define CLEAR_OSPEEDR_PA9						~(3u << (9 * 2))
 #define CLEAR_OSPEEDR_PA10						~(3u << (10 * 2))
 #define CLEAR_OSPEEDR_PA11						~(3u << (11 * 2))
+#define CLEAR_OSPEEDR_PB5     				    ~(3u << (5 * 2))
+#define CLEAR_OSPEEDR_PB6     				    ~(3u << (6 * 2))
+#define CLEAR_OSPEEDR_PB8     				    ~(3u << (8 * 2))
+#define CLEAR_OSPEEDR_PB9    				    ~(3u << (9 * 2))
+#define CLEAR_OSPEEDR_PB10   				    ~(3u << (10 * 2))
+#define CLEAR_OSPEEDR_PB12    				    ~(3u << (12 * 2))
 #define CLEAR_OSPEEDR_PC6						~(3u << (6*2))
 #define SET_PA1_HIGH_SPEED						(HIGH_SPEED << (1 * 2))
 #define SET_PA4_HIGH_SPEED						(HIGH_SPEED << (4 * 2))
@@ -106,6 +158,12 @@ void enable_fpu(void);
 #define SET_PA9_HIGH_SPEED						(HIGH_SPEED << (9 * 2))
 #define SET_PA10_HIGH_SPEED						(HIGH_SPEED << (10 * 2))
 #define SET_PA11_HIGH_SPEED						(HIGH_SPEED << (11 * 2))
+#define SET_PB5_HIGH_SPEED    				    (HIGH_SPEED << (5 * 2))
+#define SET_PB6_HIGH_SPEED    				    (HIGH_SPEED << (6 * 2))
+#define SET_PB8_HIGH_SPEED     					(HIGH_SPEED << (8 * 2))
+#define SET_PB9_HIGH_SPEED    				    (HIGH_SPEED << (9 * 2))
+#define SET_PB10_HIGH_SPEED    					(HIGH_SPEED << (10 * 2))
+#define SET_PB12_HIGH_SPEED   				    (HIGH_SPEED << (12 * 2))
 #define SET_PC6_HIGH_SPEED						(HIGH_SPEED << (6*2))
 
 /*AFR - alternate function, low registers*/
@@ -217,7 +275,7 @@ void enable_fpu(void);
 
 /*Constants macros*/
 #define ARR_799									799u
-#define ARR_19999								19999u
+#define ARR_65535    						    65535u
 #define F_CLK									16000000u						//Hz
 #define PSC_0									0u
 #define PSC_15									15u
@@ -249,7 +307,16 @@ void enable_fpu(void);
 /*EGR*/
 #define EGR_UPDATE_GANERATION_ENABLE			(1u << 0)						//Re-initialize the counter and generates an update of the registers.
 
-/****************Interrupt MACROS ****************/
+/****************EXTI MACROS ****************/
+
+#define EXTI_PORT_C     						2u
+#define EXTI_LINE_4    (1u << 4)     											// PC4  -> ECHO front left
+#define EXTI_LINE_5    (1u << 5)     											// PC5  -> ECHO front center
+#define EXTI_LINE_6    (1u << 6)     											// PC6  -> ECHO front right
+
+#define EXTI_LINE_8    (1u << 8)    										    // PC8  -> ECHO rear left
+#define EXTI_LINE_9    (1u << 9)     											// PC9  -> ECHO rear center
+#define EXTI_LINE_10   (1u << 10)    											// PC10 -> ECHO rear right
 
 /*Usart1 interrupt register flags*/
 #define FRAMING_ERROR							(1u << 1)						//check FE 1
@@ -258,11 +325,35 @@ void enable_fpu(void);
 #define RXNE_READY								(1u << 5)						//RXNE: Read data register not empty, 1: Received data is ready to be read.
 #define RXNE_INTERRUPT_ENABLE					(1u << 5)						//usart interrupt enable
 
+/****************IRQ MACROS ****************/
+#define IRQ_EXTI4        10u
+#define IRQ_EXTI9_5      23u
+#define IRQ_EXTI15_10    40u
+
 /****************OTHER MACROS ****************/
-#define FEEDBACK_MIN 480
-#define FEEDBACK_MAX 991
-#define	FEEDBACK_MID ((FEEDBACK_MAX + FEEDBACK_MIN)/2)
-#define TRANSMITTER_MID 512
-#define FEEDBACK_OFFSET 5
+#define FEEDBACK_MIN 							480u
+#define FEEDBACK_MAX 							991u
+#define	FEEDBACK_MID 							750u
+#define TRANSMITTER_MID 						512u
+#define FEEDBACK_OFFSET 						5u
+
+#define ECHO_PC4_PIN  						    (1u << 4)
+#define ECHO_PC5_PIN  						    (1u << 5)
+#define ECHO_PC6_PIN  						    (1u << 6)
+#define ECHO_PC8_PIN  						    (1u << 8)
+#define ECHO_PC9_PIN  						    (1u << 9)
+#define ECHO_PC10_PIN  						    (1u << 10)
+
+
+
+#define TRIG_FRONT_LEFT_PIN     			    12u
+#define TRIG_FRONT_CENTER_PIN     			    5u
+#define TRIG_FRONT_RIGHT_PIN      			    6u
+#define TRIG_REAR_LEFT_PIN        			    8u
+#define TRIG_REAR_CENTER_PIN     			    9u
+#define TRIG_REAR_RIGHT_PIN       				10u
+
+#define ULTRASONIC_MAX_DISTANCE_CM   			300u
+
 
 #endif /* SETUP_H_ */

@@ -1,0 +1,2 @@
+../Src/PID.c:9:6:pi_init	16	static
+../Src/PID.c:21:7:pi_update	32	static

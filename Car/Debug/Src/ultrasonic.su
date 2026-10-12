@@ -1,0 +1,2 @@
+../Src/ultrasonic.c:87:6:ultrasonic_update	8	static
+../Src/ultrasonic.c:120:6:ultrasonic_echo_calculate	4	static

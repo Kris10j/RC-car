@@ -18,6 +18,8 @@
 #define TIM1_OFFSET							((0x40010000u) - (APB2))
 #define TIM8_OFFSET							((0x40010400) - (APB2))
 #define USART1_OFFSET						((0x40011000u) - (APB2))
+#define SYSCFG_OFFSET  					    ((0x40013800u) - (APB2))
+#define EXTI_OFFSET    					    ((0x40013C00u) - (APB2))
 
 /*Base addresses*/
 #define RCC_BASE_ADDRESS					((AHB1) + (RCC_OFFSET))
@@ -29,6 +31,8 @@
 #define TIM8_BASE_ADDRESS					((APB2) + (TIM8_OFFSET))
 #define USART1_BASE_ADDRESS					((APB2) + (USART1_OFFSET))
 #define NVIC_BASE_ADDRESS  				     0xE000E100u
+#define SYSCFG_BASE_ADDRESS   				((APB2) + (SYSCFG_OFFSET))
+#define EXTI_BASE_ADDRESS  				    ((APB2) + (EXTI_OFFSET))
 
 
 /* Peripheral registers mapping*/
@@ -41,6 +45,8 @@
 #define TIM8								((TIM_register_map*) TIM8_BASE_ADDRESS)
 #define USART1								((USART_register_map*) USART1_BASE_ADDRESS)
 #define NVIC               					((NVIC_register_map*) NVIC_BASE_ADDRESS)
+#define SYSCFG   							((SYSCFG_register_map*) SYSCFG_BASE_ADDRESS)
+#define EXTI     							((EXTI_register_map*) EXTI_BASE_ADDRESS)
 
 /***** RCC REGISTER MAP TYPEDEF STRUCT *****/
 typedef struct
@@ -164,6 +170,17 @@ typedef struct
     volatile uint32_t SWIER; // offset 0x10 (Software interrupt event register)
     volatile uint32_t PR;    // offset 0x14 (Pending register)
 } EXTI_register_map;
+
+/*****SYSCFG TYPEDEF STRUCT*****/
+typedef struct
+{
+    volatile uint32_t MEMRMP;       // 0x00
+    volatile uint32_t PMC;          // 0x04
+    volatile uint32_t EXTICR[4];    // 0x08 - 0x14
+    volatile uint32_t RESERVED[2];  // 0x18 - 0x1C
+    volatile uint32_t CMPCR;        // 0x20
+
+} SYSCFG_register_map;
 
 /*****NVIC TYPEDEF STRUCT*****/
 

@@ -1,0 +1,17 @@
+../Src/setup.c:10:6:simple_delay	16	static
+../Src/setup.c:15:6:GPIO_initialize	4	static
+../Src/setup.c:155:6:ADC1_initialize	4	static
+../Src/setup.c:181:6:ADC1_start_conversion	4	static
+../Src/setup.c:187:10:ADC1_servo	8	static
+../Src/setup.c:202:6:USART1_RX_initialize	8	static
+../Src/setup.c:227:6:USART1_RX_interrupt	16	static
+../Src/setup.c:243:6:USART1_baud_setting_9600	24	static
+../Src/setup.c:260:6:USART1_selection	24	static
+../Src/setup.c:295:6:TIM1_initialize	4	static
+../Src/setup.c:337:10:TIM1_value_scale	16	static
+../Src/setup.c:342:6:TIM8_initialize	4	static
+../Src/setup.c:366:6:turn_selection	16	static
+../Src/setup.c:382:6:car_start_position	16	static
+../Src/setup.c:390:6:enable_fpu	16	static
+../Src/setup.c:395:6:EXTI_initialize	8	static
+../Src/setup.c:477:6:ultrasonic_trigger	24	static

@@ -1,0 +1,2 @@
+../Src/ultrasonic.c:87:6:ultrasonic_update	9
+../Src/ultrasonic.c:120:6:ultrasonic_echo_calculate	13

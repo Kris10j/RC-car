@@ -6,6 +6,7 @@
 #include "interrupt.h"
 #include <math.h>
 
+
 void simple_delay(void)
 {
 	for(volatile uint32_t i = 0; i < 5000 ; i++ ) { };
@@ -16,6 +17,7 @@ void GPIO_initialize (void)
 	/*Peripheral clock enable */
 	RCC -> AHB1ENR |= RCC_AHB1ENR_GPIOA;
 	RCC -> AHB1ENR |= 	RCC_AHB1ENR_GPIOB;
+	RCC -> AHB1ENR |= 	RCC_AHB1ENR_GPIOC;
 
 	/*PA0 servo motor configuration*/
 	GPIOA->MODER &= CLEAR_MODER_PA0;
@@ -77,6 +79,77 @@ void GPIO_initialize (void)
 	GPIOB->PUPDR |= SET_PB7_PULL;
 	GPIOB->AFR [0] &= CLEAR_AFR7_PB7;
 	GPIOB->AFR [0] |= SET_AFR7_PB7;
+
+	/*TRIG init - PB12, PB5, PB6, PB8, PB9, PB10*/
+	GPIOB->MODER &= CLEAR_MODER_PB12;
+	GPIOB->MODER |= SET_PB12_OUTPUT;
+	GPIOB->OTYPER &= CLEAR_PB12_OUT_PUSH_PULL;
+	GPIOB->OSPEEDR &= CLEAR_OSPEEDR_PB12;
+	GPIOB->OSPEEDR |= SET_PB12_HIGH_SPEED;
+	GPIOB->PUPDR &= CLEAR_PB12_NO_PULL;
+
+	GPIOB->MODER &= CLEAR_MODER_PB5;
+	GPIOB->MODER |= SET_PB5_OUTPUT;
+	GPIOB->OTYPER &= CLEAR_PB5_OUT_PUSH_PULL;
+	GPIOB->OSPEEDR &= CLEAR_OSPEEDR_PB5;
+	GPIOB->OSPEEDR |= SET_PB5_HIGH_SPEED;
+	GPIOB->PUPDR &= CLEAR_PB5_NO_PULL;
+
+	GPIOB->MODER &= CLEAR_MODER_PB6;
+	GPIOB->MODER |= SET_PB6_OUTPUT;
+	GPIOB->OTYPER &= CLEAR_PB6_OUT_PUSH_PULL;
+	GPIOB->OSPEEDR &= CLEAR_OSPEEDR_PB6;
+	GPIOB->OSPEEDR |= SET_PB6_HIGH_SPEED;
+	GPIOB->PUPDR &= CLEAR_PB6_NO_PULL;
+
+	GPIOB->MODER &= CLEAR_MODER_PB8;
+	GPIOB->MODER |= SET_PB8_OUTPUT;
+	GPIOB->OTYPER &= CLEAR_PB8_OUT_PUSH_PULL;
+	GPIOB->OSPEEDR &= CLEAR_OSPEEDR_PB8;
+	GPIOB->OSPEEDR |= SET_PB8_HIGH_SPEED;
+	GPIOB->PUPDR &= CLEAR_PB8_NO_PULL;
+
+	GPIOB->MODER &= CLEAR_MODER_PB9;
+	GPIOB->MODER |= SET_PB9_OUTPUT;
+	GPIOB->OTYPER &= CLEAR_PB9_OUT_PUSH_PULL;
+	GPIOB->OSPEEDR &= CLEAR_OSPEEDR_PB9;
+	GPIOB->OSPEEDR |= SET_PB9_HIGH_SPEED;
+	GPIOB->PUPDR &= CLEAR_PB9_NO_PULL;
+
+	GPIOB->MODER &= CLEAR_MODER_PB10;
+	GPIOB->MODER |= SET_PB10_OUTPUT;
+	GPIOB->OTYPER &= CLEAR_PB10_OUT_PUSH_PULL;
+	GPIOB->OSPEEDR &= CLEAR_OSPEEDR_PB10;
+	GPIOB->OSPEEDR |= SET_PB10_HIGH_SPEED;
+	GPIOB->PUPDR &= CLEAR_PB10_NO_PULL;
+
+	/*ECHO init - PC4, PC5, PC6, PC8, PC9, PC10*/
+	GPIOC->MODER &= CLEAR_MODER_PC4;
+	GPIOC->PUPDR &= CLEAR_PC4_NO_PULL;
+	GPIOC->PUPDR |= SET_PC4_PULL_DOWN;
+
+	GPIOC->MODER &= CLEAR_MODER_PC5;
+	GPIOC->PUPDR &= CLEAR_PC5_NO_PULL;
+	GPIOC->PUPDR |= SET_PC5_PULL_DOWN;
+
+	GPIOC->MODER &= CLEAR_MODER_PC6;
+	GPIOC->PUPDR &= CLEAR_PC6_NO_PULL;
+	GPIOC->PUPDR |= SET_PC6_PULL_DOWN;
+
+	GPIOC->MODER &= CLEAR_MODER_PC8;
+	GPIOC->PUPDR &= CLEAR_PC8_NO_PULL;
+	GPIOC->PUPDR |= SET_PC8_PULL_DOWN;
+
+	GPIOC->MODER &= CLEAR_MODER_PC9;
+	GPIOC->PUPDR &= CLEAR_PC9_NO_PULL;
+	GPIOC->PUPDR |= SET_PC9_PULL_DOWN;
+
+	GPIOC->MODER &= CLEAR_MODER_PC10;
+	GPIOC->PUPDR &= CLEAR_PC10_NO_PULL;
+	GPIOC->PUPDR |= SET_PC10_PULL_DOWN;
+
+
+
 }
 
 void ADC1_initialize (void)
@@ -121,12 +194,9 @@ uint16_t ADC1_servo (void)
 
 	/*Start conversion and after return DR*/
 	ADC1_start_conversion();
-	simple_delay();
+	while (!(ADC1->SR & EOC_CONV_COMP));
 
-	if (ADC1 -> SR & EOC_CONV_COMP){
-		return (uint16_t) ADC1 -> DR;
-	}else{
-	return 0;}
+	return (uint16_t)ADC1->DR;
 }
 
 void USART1_RX_initialize (void)
@@ -269,6 +339,30 @@ uint16_t TIM1_value_scale(uint16_t adc_value)
 	return (uint16_t)(((uint32_t)(adc_value * TIM1->ARR) / 1023));
 }
 
+void TIM8_initialize(void)
+{
+    /*Clock enable*/
+    RCC->APB2ENR |= RCC_APB2ENR_TIM8;
+
+    /*Stop counter */
+    TIM8->CR1 &= ~COUNTER_ENABLE;
+
+    /*1 tick = 1 us*/
+    TIM8->PSC = PSC_15;
+
+    /*16 bit maximum counter value*/
+    TIM8->ARR = ARR_65535;
+
+    /* Start from zero */
+    TIM8->CNT = 0;
+
+    /*Load PSC and ARR*/
+    TIM8->EGR |= EGR_UPDATE_GANERATION_ENABLE;
+
+    /*Enable counter*/
+    TIM8->CR1 |= COUNTER_ENABLE;
+}
+
 void turn_selection(float out)
 {
     if (out > 0) {
@@ -296,6 +390,105 @@ void car_start_position(USART_values* start) {
 void enable_fpu(void){
 	volatile uint32_t *CPACR = (uint32_t*)0xE000ED88;
 	*CPACR |= (0xF << 20);
+}
+
+void EXTI_initialize(void){
+
+	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
+
+	/* EXTI4 (PC4) */
+    SYSCFG->EXTICR[1] &= ~(0xFu << 0);
+    SYSCFG->EXTICR[1] |=  (EXTI_PORT_C << 0);
+
+    /* EXTI5 (PC5) */
+    SYSCFG->EXTICR[1] &= ~(0xFu << 4);
+    SYSCFG->EXTICR[1] |=  (EXTI_PORT_C << 4);
+
+    /* EXTI6 (PC6) */
+    SYSCFG->EXTICR[1] &= ~(0xFu << 8);
+    SYSCFG->EXTICR[1] |=  (EXTI_PORT_C << 8);
+
+
+    /* EXTI8 (PC8) */
+    SYSCFG->EXTICR[2] &= ~(0xFu << 0);
+    SYSCFG->EXTICR[2] |=  (EXTI_PORT_C << 0);
+
+    /* EXTI9 (PC9) */
+    SYSCFG->EXTICR[2] &= ~(0xFu << 4);
+    SYSCFG->EXTICR[2] |=  (EXTI_PORT_C << 4);
+
+    /* EXTI10 (PC10) */
+    SYSCFG->EXTICR[2] &= ~(0xFu << 8);
+    SYSCFG->EXTICR[2] |=  (EXTI_PORT_C << 8);
+
+
+    /*IMR -> Interrupt Mask Register (Enable Interrupt)*/
+    EXTI->IMR |= EXTI_LINE_4;
+    EXTI->IMR |= EXTI_LINE_5;
+    EXTI->IMR |= EXTI_LINE_6;
+    EXTI->IMR |= EXTI_LINE_8;
+    EXTI->IMR |= EXTI_LINE_9;
+    EXTI->IMR |= EXTI_LINE_10;
+
+    /* PR -> Pending Register (reset)*/
+    EXTI->PR = EXTI_LINE_4;
+    EXTI->PR = EXTI_LINE_5;
+    EXTI->PR = EXTI_LINE_6;
+    EXTI->PR = EXTI_LINE_8;
+    EXTI->PR = EXTI_LINE_9;
+    EXTI->PR = EXTI_LINE_10;
+
+    /* RTSR -> Rising Trigger Selection Register*/
+    EXTI->RTSR |= EXTI_LINE_4;
+    EXTI->RTSR |= EXTI_LINE_5;
+    EXTI->RTSR |= EXTI_LINE_6;
+    EXTI->RTSR |= EXTI_LINE_8;
+    EXTI->RTSR |= EXTI_LINE_9;
+    EXTI->RTSR |= EXTI_LINE_10;
+
+    /*FTSR -> Falling Trigger Selection Register*/
+    EXTI->FTSR |= EXTI_LINE_4;
+    EXTI->FTSR |= EXTI_LINE_5;
+    EXTI->FTSR |= EXTI_LINE_6;
+    EXTI->FTSR |= EXTI_LINE_8;
+    EXTI->FTSR |= EXTI_LINE_9;
+    EXTI->FTSR |= EXTI_LINE_10;
+
+
+    NVIC->ISER[0] |= (1 << 10);
+
+    /* Clear NVIC pending interrupt */
+    NVIC->ICPR[IRQ_EXTI4 >> 5] = (1u << (IRQ_EXTI4 & 31u));
+    NVIC->ICPR[IRQ_EXTI9_5 >> 5] = (1u << (IRQ_EXTI9_5 & 31u));
+    NVIC->ICPR[IRQ_EXTI15_10 >> 5] = (1u << (IRQ_EXTI15_10 & 31u));
+
+    /* Interrupt priority */
+    NVIC_Priority(IRQ_EXTI4, 2);
+    NVIC_Priority(IRQ_EXTI9_5, 2);
+    NVIC_Priority(IRQ_EXTI15_10, 2);
+
+    /* Enable NVIC interrupts */
+    NVIC_Enable(IRQ_EXTI4);
+    NVIC_Enable(IRQ_EXTI9_5);
+    NVIC_Enable(IRQ_EXTI15_10);
+
+}
+
+void ultrasonic_trigger(uint8_t trig_pin)
+{
+    uint16_t trigger_start;
+    uint32_t timeout = 1000u;
+
+    GPIOB->BSRR = (1u << trig_pin);
+    trigger_start = (uint16_t)TIM8->CNT;
+
+    /* Várakozás 10 us-ra biztonsági timeout-tal */
+    while (((uint16_t)((uint16_t)TIM8->CNT - trigger_start) < 10u) && (timeout > 0u))
+    {
+        timeout--;
+    }
+
+    GPIOB->BSRR = (1u << (trig_pin + 16u));
 }
 
 

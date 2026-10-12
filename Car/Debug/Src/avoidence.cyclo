@@ -1,0 +1,3 @@
+../Src/avoidence.c:13:7:speed_linear_calculation	3
+../Src/avoidence.c:27:7:steering_linear_calculation	8
+../Src/avoidence.c:59:13:obstacle_avoidance	15
